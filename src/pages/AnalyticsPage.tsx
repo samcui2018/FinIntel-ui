@@ -1,0 +1,1246 @@
+// import { useEffect, useState } from "react";
+// import {
+//   getAnalyticsSummary,
+//   getMonthlyTrend,
+//   getTopMerchants,
+//   getUploadHistory,
+//   getBusinessIntelligence,
+// } from "../services/analyticsApi";
+// import { getInsightsByBusinessId } from "../services/insightApi";
+// import type {
+//   AnalyticsSummary,
+//   MonthlyTrendPoint,
+//   TopMerchant,
+//   UploadHistoryItem,
+//   Insight,
+// } from "../types/analytics";
+// import ErrorMessage from "../components/common/ErrorMessage";
+// import LoadingSpinner from "../components/common/LoadingSpinner";
+// import { getCurrentBusiness } from "../utils/businessSession";
+
+// function formatCurrency(value: number, currencyCode = "USD"): string {
+//   return new Intl.NumberFormat("en-US", {
+//     style: "currency",
+//     currency: currencyCode,
+//   }).format(value);
+// }
+
+// function formatDate(value: string | null): string {
+//   if (!value) return "—";
+
+//   const date = new Date(value);
+//   if (Number.isNaN(date.getTime())) return "—";
+
+//   return date.toLocaleString();
+// }
+
+// function formatInsightType(value: string): string {
+//   if (!value) return "Insight";
+
+//   return value
+//     .replace(/_/g, " ")
+//     .replace(/\b\w/g, (c) => c.toUpperCase());
+// }
+
+// function getSeverityStyles(severity: string): React.CSSProperties {
+//   switch (severity?.toLowerCase()) {
+//     case "high":
+//       return {
+//         backgroundColor: "#fff5f5",
+//         border: "1px solid #f5c2c7",
+//         color: "#842029",
+//       };
+//     case "medium":
+//       return {
+//         backgroundColor: "#fff8e1",
+//         border: "1px solid #ffecb5",
+//         color: "#664d03",
+//       };
+//     default:
+//       return {
+//         backgroundColor: "#f0f9ff",
+//         border: "1px solid #b6effb",
+//         color: "#055160",
+//       };
+//   }
+// }
+
+// function sortInsights(items: Insight[]): Insight[] {
+//   const severityRank: Record<string, number> = {
+//     high: 3,
+//     medium: 2,
+//     low: 1,
+//   };
+
+//   return [...items].sort((a, b) => {
+//     const severityDiff =
+//       (severityRank[b.severity?.toLowerCase()] ?? 0) -
+//       (severityRank[a.severity?.toLowerCase()] ?? 0);
+
+//     if (severityDiff !== 0) return severityDiff;
+
+//     const aDate = new Date(a.createdAtUtc ?? 0).getTime();
+//     const bDate = new Date(b.createdAtUtc ?? 0).getTime();
+
+//     return bDate - aDate;
+//   });
+// }
+
+// function AnalyticsPage() {
+//   const currentBusiness = getCurrentBusiness();
+//   const businessId = currentBusiness?.businessId;
+//   const businessName = currentBusiness?.businessName;
+
+//   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+//   const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrendPoint[]>([]);
+//   const [topMerchants, setTopMerchants] = useState<TopMerchant[]>([]);
+//   const [uploadHistory, setUploadHistory] = useState<UploadHistoryItem[]>([]);
+//   const [insights, setInsights] = useState<Insight[]>([]);
+
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   useEffect(() => {
+//     async function load() {
+//       if (!businessId) {
+//         setError("No business selected.");
+//         setLoading(false);
+//         return;
+//       }
+
+//       try {
+//         setLoading(true);
+//         setError("");
+
+//         const [
+//           summaryResult,
+//           monthlyTrendResult,
+//           topMerchantsResult,
+//           uploadHistoryResult,
+//           insightsResult,
+//         ] = await Promise.all([
+//           getAnalyticsSummary(),
+//           getMonthlyTrend(),
+//           getTopMerchants(),
+//           getUploadHistory(),
+//           getInsightsByBusinessId(businessId),
+//         ]);
+
+//         setSummary(summaryResult);
+//         setMonthlyTrend(monthlyTrendResult);
+//         setTopMerchants(topMerchantsResult);
+//         setUploadHistory(uploadHistoryResult);
+//         setInsights(insightsResult);
+//       } catch (err) {
+//         setError(err instanceof Error ? err.message : "Failed to load analytics.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     void load();
+//   }, [businessId]);
+
+//   if (!businessId) {
+//     return (
+//       <div>
+//         <h1>Analytics</h1>
+//         <p>No business selected. Please create or select a business first.</p>
+//       </div>
+//     );
+//   }
+//   const latestUpload = uploadHistory[0] ?? null;
+//   return (
+//     <div style={{ display: "grid", gap: 24 }}>
+//       <div>
+//         <h1 style={{ marginBottom: 8 }}>Analytics</h1>
+//         <p style={{ marginTop: 0 }}>
+//           Business: <strong>{businessName ?? "—"}</strong>
+//         </p>
+//       </div>
+
+//       <ErrorMessage message={error} />
+
+//       {loading ? (
+//         <LoadingSpinner />
+//       ) : !summary ? (
+//         <p>No analytics available.</p>
+//       ) : (
+//         <>
+//           <LatestUploadSummary item={latestUpload} />
+//           <InsightsSection insights={insights} />
+
+//           <section>
+//             <h2 style={{ marginBottom: 12 }}>Summary</h2>
+//             <div
+//               style={{
+//                 display: "grid",
+//                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+//                 gap: 16,
+//               }}
+//             >
+//               <AnalyticsCard
+//                 title="Transaction Count"
+//                 value={String(summary.transactionCount)}
+//               />
+//               <AnalyticsCard
+//                 title="Total Amount"
+//                 value={formatCurrency(summary.totalAmount)}
+//               />
+//               <AnalyticsCard
+//                 title="Average Amount"
+//                 value={formatCurrency(summary.averageAmount)}
+//               />
+//               <AnalyticsCard
+//                 title="This Month"
+//                 value={formatCurrency(summary.thisMonthAmount)}
+//               />
+//               <AnalyticsCard
+//                 title="Top Merchant"
+//                 value={summary.topMerchant || "—"}
+//               />
+//               <AnalyticsCard
+//                 title="Latest Upload"
+//                 value={formatDate(summary.latestUploadAt)}
+//               />
+//             </div>
+//           </section>
+
+//           <section>
+//             <h2 style={{ marginBottom: 12 }}>Monthly Trend</h2>
+//             {monthlyTrend.length === 0 ? (
+//               <p>No monthly trend data available.</p>
+//             ) : (
+//               <div
+//                 style={{
+//                   display: "grid",
+//                   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+//                   gap: 16,
+//                 }}
+//               >
+//                 {monthlyTrend.map((item) => (
+//                   <TrendCard
+//                     key={item.month}
+//                     item={item}
+//                   />
+//                 ))}
+//               </div>
+//             )}
+//           </section>
+
+//           <section>
+//             <h2 style={{ marginBottom: 12 }}>Top Merchants</h2>
+//             {topMerchants.length === 0 ? (
+//               <p>No merchant data available.</p>
+//             ) : (
+//               <div style={{ overflowX: "auto" }}>
+//                 <table
+//                   style={{
+//                     width: "100%",
+//                     borderCollapse: "collapse",
+//                     backgroundColor: "#fff",
+//                     border: "1px solid #ddd",
+//                     borderRadius: 12,
+//                   }}
+//                 >
+//                   <thead>
+//                     <tr>
+//                       <th style={tableHeaderStyle}>Merchant</th>
+//                       <th style={tableHeaderStyle}>Amount</th>
+//                       <th style={tableHeaderStyle}>Transaction Count</th>
+//                     </tr>
+//                   </thead>
+//                   <tbody>
+//                     {topMerchants.map((merchant) => (
+//                       <tr key={merchant.merchantName}>
+//                         <td style={tableCellStyle}>{merchant.merchantName || "—"}</td>
+//                         <td style={tableCellStyle}>
+//                           {formatCurrency(merchant.totalAmount)}
+//                         </td>
+//                         <td style={tableCellStyle}>{merchant.transactionCount}</td>
+//                       </tr>
+//                     ))}
+//                   </tbody>
+//                 </table>
+//               </div>
+//             )}
+//           </section>
+
+//           <section>
+//             <h2 style={{ marginBottom: 12 }}>Upload History</h2>
+//             {uploadHistory.length === 0 ? (
+//               <p>No upload history available.</p>
+//             ) : (
+//               <div style={{ overflowX: "auto" }}>
+//                 <table
+//                   style={{
+//                     width: "100%",
+//                     borderCollapse: "collapse",
+//                     backgroundColor: "#fff",
+//                     border: "1px solid #ddd",
+//                     borderRadius: 12,
+//                   }}
+//                 >
+//                   <thead>
+//                     <tr>
+//                       <th style={tableHeaderStyle}>Source</th>
+//                       <th style={tableHeaderStyle}>Status</th>
+//                       <th style={tableHeaderStyle}>Rows in File</th>
+//                       <th style={tableHeaderStyle}>Rows Inserted</th>
+//                       <th style={tableHeaderStyle}>Uploaded At</th>
+//                     </tr>
+//                   </thead>
+//                   <tbody>
+//                     {uploadHistory.map((item) => (
+//                       <tr key={item.loadId}>
+//                         <td style={tableCellStyle}>{item.sourceName || "—"}</td>
+//                         <td style={tableCellStyle}>{item.status || "—"}</td>
+//                         <td style={tableCellStyle}>{item.rowsInFile}</td>
+//                         <td style={tableCellStyle}>{item.rowsInserted ?? "—"}</td>
+//                         <td style={tableCellStyle}>{formatDate(item.createdAt)}</td>
+//                       </tr>
+//                     ))}
+//                   </tbody>
+//                 </table>
+//               </div>
+//             )}
+//           </section>
+//         </>
+//       )}
+//     </div>
+//   );
+// }
+// function LatestUploadSummary({ item }: { item: UploadHistoryItem | null }) {
+//   if (!item) return null;
+
+//   return (
+//     <section
+//       style={{
+//         border: "1px solid #ddd",
+//         borderRadius: 12,
+//         padding: 16,
+//         backgroundColor: "#fff",
+//       }}
+//     >
+//       <h2 style={{ marginBottom: 12 }}>Latest Upload</h2>
+
+//       <div
+//         style={{
+//           display: "grid",
+//           gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+//           gap: 16,
+//         }}
+//       >
+//         <SummaryItem label="File Name" value={item.sourceName || "—"} />
+//         <SummaryItem label="Status" value={item.status || "—"} />
+//         <SummaryItem label="Rows in File" value={String(item.rowsInFile)} />
+//         <SummaryItem
+//           label="Rows Inserted"
+//           value={item.rowsInserted != null ? String(item.rowsInserted) : "—"}
+//         />
+//         <SummaryItem
+//           label="Uploaded At"
+//           value={formatDate(item.createdAt)}
+//         />
+//       </div>
+//     </section>
+//   );
+// }
+
+// function SummaryItem({ label, value }: { label: string; value: string }) {
+//   return (
+//     <div>
+//       <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+//         {label}
+//       </div>
+//       <div style={{ fontSize: 15, fontWeight: 600, wordBreak: "break-word" }}>
+//         {value}
+//       </div>
+//     </div>
+//   );
+// }
+// function InsightsSection({ insights }: { insights: Insight[] }) {
+//   const sortedInsights = sortInsights(insights);
+
+//   return (
+//     <section>
+//       <div style={{ marginBottom: 12 }}>
+//         <h2 style={{ marginBottom: 6 }}>Key Insights</h2>
+//         <p style={{ margin: 0, color: "#666" }}>
+//           Decision-oriented signals generated from uploaded transaction activity.
+//         </p>
+//       </div>
+
+//       {sortedInsights.length === 0 ? (
+//         <p>No insights available yet.</p>
+//       ) : (
+//         <div
+//           style={{
+//             display: "grid",
+//             gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+//             gap: 16,
+//           }}
+//         >
+//           {sortedInsights.map((insight) => (
+//             <InsightCard
+//               key={insight.insightId}
+//               insight={insight}
+//             />
+//           ))}
+//         </div>
+//       )}
+//     </section>
+//   );
+// }
+
+// type AnalyticsCardProps = {
+//   title: string;
+//   value: string;
+// };
+
+// function AnalyticsCard({ title, value }: AnalyticsCardProps) {
+//   return (
+//     <div
+//       style={{
+//         border: "1px solid #ddd",
+//         borderRadius: 12,
+//         padding: 16,
+//         backgroundColor: "#fff",
+//       }}
+//     >
+//       <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>{title}</div>
+//       <div style={{ fontSize: 24, fontWeight: 700 }}>{value}</div>
+//     </div>
+//   );
+// }
+
+// function TrendCard({ item }: { item: MonthlyTrendPoint }) {
+//   return (
+//     <div
+//       style={{
+//         border: "1px solid #ddd",
+//         borderRadius: 12,
+//         padding: 16,
+//         backgroundColor: "#fff",
+//       }}
+//     >
+//       <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
+//         {item.month}
+//       </div>
+//       <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
+//         {formatCurrency(item.totalAmount)}
+//       </div>
+//       <div style={{ fontSize: 14, color: "#444" }}>
+//         Transactions: {item.transactionCount}
+//       </div>
+//     </div>
+//   );
+// }
+
+// function InsightCard({ insight }: { insight: Insight }) {
+//   const severityStyle = getSeverityStyles(insight.severity);
+
+//   return (
+//     <div
+//       style={{
+//         border: "1px solid #ddd",
+//         borderRadius: 12,
+//         padding: 16,
+//         backgroundColor: "#fff",
+//         display: "flex",
+//         flexDirection: "column",
+//         gap: 12,
+//       }}
+//     >
+//       <div
+//         style={{
+//           display: "flex",
+//           justifyContent: "space-between",
+//           alignItems: "flex-start",
+//           gap: 12,
+//           flexWrap: "wrap",
+//         }}
+//       >
+//         <div>
+//           <div style={{ fontSize: 12, color: "#666", marginBottom: 6 }}>
+//             {formatInsightType(insight.insightType)}
+//           </div>
+//           <div style={{ fontSize: 18, fontWeight: 700 }}>{insight.title}</div>
+//         </div>
+
+//         <span
+//           style={{
+//             ...severityStyle,
+//             padding: "4px 10px",
+//             borderRadius: 999,
+//             fontSize: 12,
+//             fontWeight: 700,
+//             whiteSpace: "nowrap",
+//           }}
+//         >
+//           {insight.severity}
+//         </span>
+//       </div>
+
+//       <div style={{ color: "#444", lineHeight: 1.5 }}>
+//         {insight.description}
+//       </div>
+
+//       {insight.impactLabel && (
+//         <div
+//           style={{
+//             border: "1px solid #eee",
+//             borderRadius: 8,
+//             padding: 12,
+//             backgroundColor: "#fafafa",
+//           }}
+//         >
+//           <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+//             Estimated Impact
+//           </div>
+//           <div style={{ fontSize: 16, fontWeight: 600 }}>{insight.impactLabel}</div>
+//         </div>
+//       )}
+
+//       {insight.recommendation && (
+//         <div
+//           style={{
+//             borderLeft: "4px solid #2563eb",
+//             borderRadius: 8,
+//             padding: "10px 12px",
+//             backgroundColor: "#f8fafc",
+//           }}
+//         >
+//           <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+//             Recommended Action
+//           </div>
+//           <div>{insight.recommendation}</div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// const tableHeaderStyle: React.CSSProperties = {
+//   textAlign: "left",
+//   padding: 12,
+//   borderBottom: "1px solid #ddd",
+//   backgroundColor: "#f8f8f8",
+// };
+
+// const tableCellStyle: React.CSSProperties = {
+//   padding: 12,
+//   borderBottom: "1px solid #eee",
+// };
+
+// export default AnalyticsPage;
+
+import { useEffect, useState } from "react";
+import {
+  getAnalyticsSummary,
+  getMonthlyTrend,
+  getTopMerchants,
+  getUploadHistory,
+  getBusinessIntelligence,
+} from "../services/analyticsApi";
+import { getInsightsByBusinessId } from "../services/insightApi";
+import type {
+  AnalyticsSummary,
+  MonthlyTrendPoint,
+  TopMerchant,
+  UploadHistoryItem,
+  Insight,
+} from "../types/analytics";
+import ErrorMessage from "../components/common/ErrorMessage";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import { getCurrentBusiness } from "../utils/businessSession";
+
+type BusinessIntelligenceResponse = {
+  executiveSummary?: string | null;
+  topInsights?: Insight[] | null;
+  benchmark?: {
+    peerAverageMonthlySpend?: number | null;
+    peerMedianMonthlySpend?: number | null;
+    percentile?: number | null;
+    comparisonSummary?: string | null;
+  } | null;
+  forecast?: {
+    nextMonthSpend?: number | null;
+    confidence?: string | null;
+    summary?: string | null;
+  } | null;
+};
+
+function formatCurrency(value: number, currencyCode = "USD"): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencyCode,
+  }).format(value);
+}
+
+function formatNullableCurrency(
+  value: number | null | undefined,
+  currencyCode = "USD"
+): string {
+  if (value == null) return "—";
+  return formatCurrency(value, currencyCode);
+}
+
+function formatDate(value: string | null): string {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleString();
+}
+
+function formatInsightType(value: string): string {
+  if (!value) return "Insight";
+
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function getSeverityStyles(severity: string): React.CSSProperties {
+  switch (severity?.toLowerCase()) {
+    case "high":
+      return {
+        backgroundColor: "#fff5f5",
+        border: "1px solid #f5c2c7",
+        color: "#842029",
+      };
+    case "medium":
+      return {
+        backgroundColor: "#fff8e1",
+        border: "1px solid #ffecb5",
+        color: "#664d03",
+      };
+    default:
+      return {
+        backgroundColor: "#f0f9ff",
+        border: "1px solid #b6effb",
+        color: "#055160",
+      };
+  }
+}
+
+function sortInsights(items: Insight[]): Insight[] {
+  const severityRank: Record<string, number> = {
+    high: 3,
+    medium: 2,
+    low: 1,
+  };
+
+  return [...items].sort((a, b) => {
+    const severityDiff =
+      (severityRank[b.severity?.toLowerCase()] ?? 0) -
+      (severityRank[a.severity?.toLowerCase()] ?? 0);
+
+    if (severityDiff !== 0) return severityDiff;
+
+    const aDate = new Date(a.createdAtUtc ?? 0).getTime();
+    const bDate = new Date(b.createdAtUtc ?? 0).getTime();
+
+    return bDate - aDate;
+  });
+}
+
+function AnalyticsPage() {
+  const currentBusiness = getCurrentBusiness();
+  const businessId = currentBusiness?.businessId;
+  const businessName = currentBusiness?.businessName;
+
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrendPoint[]>([]);
+  const [topMerchants, setTopMerchants] = useState<TopMerchant[]>([]);
+  const [uploadHistory, setUploadHistory] = useState<UploadHistoryItem[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [businessIntelligence, setBusinessIntelligence] =
+    useState<BusinessIntelligenceResponse | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      if (!businessId) {
+        setError("No business selected.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const [
+          summaryResult,
+          monthlyTrendResult,
+          topMerchantsResult,
+          uploadHistoryResult,
+          insightsResult,
+          businessIntelligenceResult,
+        ] = await Promise.all([
+          getAnalyticsSummary(),
+          getMonthlyTrend(),
+          getTopMerchants(),
+          getUploadHistory(),
+          getInsightsByBusinessId(businessId),
+          getBusinessIntelligence(businessId),
+        ]);
+
+        setSummary(summaryResult);
+        setMonthlyTrend(monthlyTrendResult);
+        setTopMerchants(topMerchantsResult);
+        setUploadHistory(uploadHistoryResult);
+        setInsights(insightsResult);
+        setBusinessIntelligence(
+          (businessIntelligenceResult as BusinessIntelligenceResponse) ?? null
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load analytics.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void load();
+  }, [businessId]);
+
+  if (!businessId) {
+    return (
+      <div>
+        <h1>Analytics</h1>
+        <p>No business selected. Please create or select a business first.</p>
+      </div>
+    );
+  }
+
+  const latestUpload = uploadHistory[0] ?? null;
+
+  return (
+    <div style={{ display: "grid", gap: 24 }}>
+      <div>
+        <h1 style={{ marginBottom: 8 }}>Analytics</h1>
+        <p style={{ marginTop: 0 }}>
+          Business: <strong>{businessName ?? "—"}</strong>
+        </p>
+      </div>
+
+      <ErrorMessage message={error} />
+
+      {loading ? (
+        <LoadingSpinner />
+      ) : !summary ? (
+        <p>No analytics available.</p>
+      ) : (
+        <>
+          <AiBusinessIntelligenceSection data={businessIntelligence} />
+          <LatestUploadSummary item={latestUpload} />
+          <InsightsSection insights={insights} />
+
+          <section>
+            <h2 style={{ marginBottom: 12 }}>Summary</h2>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 16,
+              }}
+            >
+              <AnalyticsCard
+                title="Transaction Count"
+                value={String(summary.transactionCount)}
+              />
+              <AnalyticsCard
+                title="Total Amount"
+                value={formatCurrency(summary.totalAmount)}
+              />
+              <AnalyticsCard
+                title="Average Amount"
+                value={formatCurrency(summary.averageAmount)}
+              />
+              <AnalyticsCard
+                title="This Month"
+                value={formatCurrency(summary.thisMonthAmount)}
+              />
+              <AnalyticsCard
+                title="Top Merchant"
+                value={summary.topMerchant || "—"}
+              />
+              <AnalyticsCard
+                title="Latest Upload"
+                value={formatDate(summary.latestUploadAt)}
+              />
+            </div>
+          </section>
+
+          <section>
+            <h2 style={{ marginBottom: 12 }}>Monthly Trend</h2>
+            {monthlyTrend.length === 0 ? (
+              <p>No monthly trend data available.</p>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                {monthlyTrend.map((item) => (
+                  <TrendCard key={item.month} item={item} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2 style={{ marginBottom: 12 }}>Top Merchants</h2>
+            {topMerchants.length === 0 ? (
+              <p>No merchant data available.</p>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    backgroundColor: "#fff",
+                    border: "1px solid #ddd",
+                    borderRadius: 12,
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th style={tableHeaderStyle}>Merchant</th>
+                      <th style={tableHeaderStyle}>Amount</th>
+                      <th style={tableHeaderStyle}>Transaction Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topMerchants.map((merchant) => (
+                      <tr key={merchant.merchantName}>
+                        <td style={tableCellStyle}>{merchant.merchantName || "—"}</td>
+                        <td style={tableCellStyle}>
+                          {formatCurrency(merchant.totalAmount)}
+                        </td>
+                        <td style={tableCellStyle}>{merchant.transactionCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2 style={{ marginBottom: 12 }}>Upload History</h2>
+            {uploadHistory.length === 0 ? (
+              <p>No upload history available.</p>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    backgroundColor: "#fff",
+                    border: "1px solid #ddd",
+                    borderRadius: 12,
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th style={tableHeaderStyle}>Source</th>
+                      <th style={tableHeaderStyle}>Status</th>
+                      <th style={tableHeaderStyle}>Rows in File</th>
+                      <th style={tableHeaderStyle}>Rows Inserted</th>
+                      <th style={tableHeaderStyle}>Uploaded At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uploadHistory.map((item) => (
+                      <tr key={item.loadId}>
+                        <td style={tableCellStyle}>{item.sourceName || "—"}</td>
+                        <td style={tableCellStyle}>{item.status || "—"}</td>
+                        <td style={tableCellStyle}>{item.rowsInFile}</td>
+                        <td style={tableCellStyle}>{item.rowsInserted ?? "—"}</td>
+                        <td style={tableCellStyle}>{formatDate(item.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AiBusinessIntelligenceSection({
+  data,
+}: {
+  data: BusinessIntelligenceResponse | null;
+}) {
+  const aiInsights = sortInsights(data?.topInsights ?? []);
+
+  return (
+    <section
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: 12,
+        padding: 16,
+        backgroundColor: "#fff",
+      }}
+    >
+      <div style={{ marginBottom: 12 }}>
+        <h2 style={{ marginBottom: 6 }}>AI Business Intelligence</h2>
+        <p style={{ margin: 0, color: "#666" }}>
+          AI-generated executive summary, benchmark comparison, forecast, and top
+          intelligence signals.
+        </p>
+      </div>
+
+      {!data ? (
+        <p>No AI business intelligence available yet.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 20 }}>
+          <div
+            style={{
+              border: "1px solid #eee",
+              borderRadius: 10,
+              padding: 16,
+              backgroundColor: "#fafafa",
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
+              Executive Summary
+            </div>
+            <div style={{ lineHeight: 1.6 }}>
+              {data.executiveSummary?.trim()
+                ? data.executiveSummary
+                : "No executive summary available."}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 16,
+            }}
+          >
+            <div
+              style={{
+                border: "1px solid #eee",
+                borderRadius: 10,
+                padding: 16,
+                backgroundColor: "#fafafa",
+              }}
+            >
+              <h3 style={{ marginTop: 0, marginBottom: 12 }}>Benchmark</h3>
+              <div style={{ display: "grid", gap: 10 }}>
+                <SummaryItem
+                  label="Peer Average Monthly Spend"
+                  value={formatNullableCurrency(
+                    data.benchmark?.peerAverageMonthlySpend
+                  )}
+                />
+                <SummaryItem
+                  label="Peer Median Monthly Spend"
+                  value={formatNullableCurrency(
+                    data.benchmark?.peerMedianMonthlySpend
+                  )}
+                />
+                <SummaryItem
+                  label="Percentile"
+                  value={
+                    data.benchmark?.percentile != null
+                      ? `${data.benchmark.percentile}%`
+                      : "—"
+                  }
+                />
+                <SummaryItem
+                  label="Comparison Summary"
+                  value={data.benchmark?.comparisonSummary || "—"}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #eee",
+                borderRadius: 10,
+                padding: 16,
+                backgroundColor: "#fafafa",
+              }}
+            >
+              <h3 style={{ marginTop: 0, marginBottom: 12 }}>Forecast</h3>
+              <div style={{ display: "grid", gap: 10 }}>
+                <SummaryItem
+                  label="Next Month Spend"
+                  value={formatNullableCurrency(data.forecast?.nextMonthSpend)}
+                />
+                <SummaryItem
+                  label="Confidence"
+                  value={data.forecast?.confidence || "—"}
+                />
+                <SummaryItem
+                  label="Forecast Summary"
+                  value={data.forecast?.summary || "—"}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style={{ marginBottom: 12 }}>AI Top Insights</h3>
+            {aiInsights.length === 0 ? (
+              <p>No AI insights available.</p>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                {aiInsights.map((insight) => (
+                  <InsightCard
+                    key={insight.insightId}
+                    insight={insight}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LatestUploadSummary({ item }: { item: UploadHistoryItem | null }) {
+  if (!item) return null;
+
+  return (
+    <section
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: 12,
+        padding: 16,
+        backgroundColor: "#fff",
+      }}
+    >
+      <h2 style={{ marginBottom: 12 }}>Latest Upload</h2>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: 16,
+        }}
+      >
+        <SummaryItem label="File Name" value={item.sourceName || "—"} />
+        <SummaryItem label="Status" value={item.status || "—"} />
+        <SummaryItem label="Rows in File" value={String(item.rowsInFile)} />
+        <SummaryItem
+          label="Rows Inserted"
+          value={item.rowsInserted != null ? String(item.rowsInserted) : "—"}
+        />
+        <SummaryItem label="Uploaded At" value={formatDate(item.createdAt)} />
+      </div>
+    </section>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 600, wordBreak: "break-word" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function InsightsSection({ insights }: { insights: Insight[] }) {
+  const sortedInsights = sortInsights(insights);
+
+  return (
+    <section>
+      <div style={{ marginBottom: 12 }}>
+        <h2 style={{ marginBottom: 6 }}>Key Insights</h2>
+        <p style={{ margin: 0, color: "#666" }}>
+          Decision-oriented signals generated from uploaded transaction activity.
+        </p>
+      </div>
+
+      {sortedInsights.length === 0 ? (
+        <p>No insights available yet.</p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {sortedInsights.map((insight) => (
+            <InsightCard
+              key={insight.insightId}
+              insight={insight}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+type AnalyticsCardProps = {
+  title: string;
+  value: string;
+};
+
+function AnalyticsCard({ title, value }: AnalyticsCardProps) {
+  return (
+    <div
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: 12,
+        padding: 16,
+        backgroundColor: "#fff",
+      }}
+    >
+      <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 24, fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
+
+function TrendCard({ item }: { item: MonthlyTrendPoint }) {
+  return (
+    <div
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: 12,
+        padding: 16,
+        backgroundColor: "#fff",
+      }}
+    >
+      <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
+        {item.month}
+      </div>
+      <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
+        {formatCurrency(item.totalAmount)}
+      </div>
+      <div style={{ fontSize: 14, color: "#444" }}>
+        Transactions: {item.transactionCount}
+      </div>
+    </div>
+  );
+}
+
+function InsightCard({ insight }: { insight: Insight }) {
+  const severityStyle = getSeverityStyles(insight.severity);
+
+  return (
+    <div
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: 12,
+        padding: 16,
+        backgroundColor: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 12, color: "#666", marginBottom: 6 }}>
+            {formatInsightType(insight.insightType)}
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{insight.title}</div>
+        </div>
+
+        <span
+          style={{
+            ...severityStyle,
+            padding: "4px 10px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {insight.severity}
+        </span>
+      </div>
+
+      <div style={{ color: "#444", lineHeight: 1.5 }}>
+        {insight.description}
+      </div>
+
+      {insight.impactLabel && (
+        <div
+          style={{
+            border: "1px solid #eee",
+            borderRadius: 8,
+            padding: 12,
+            backgroundColor: "#fafafa",
+          }}
+        >
+          <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+            Estimated Impact
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>{insight.impactLabel}</div>
+        </div>
+      )}
+
+      {insight.recommendation && (
+        <div
+          style={{
+            borderLeft: "4px solid #2563eb",
+            borderRadius: 8,
+            padding: "10px 12px",
+            backgroundColor: "#f8fafc",
+          }}
+        >
+          <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+            Recommended Action
+          </div>
+          <div>{insight.recommendation}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const tableHeaderStyle: React.CSSProperties = {
+  textAlign: "left",
+  padding: 12,
+  borderBottom: "1px solid #ddd",
+  backgroundColor: "#f8f8f8",
+};
+
+const tableCellStyle: React.CSSProperties = {
+  padding: 12,
+  borderBottom: "1px solid #eee",
+};
+
+export default AnalyticsPage;
