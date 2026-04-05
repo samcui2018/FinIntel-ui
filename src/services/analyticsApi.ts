@@ -5,7 +5,8 @@ import type {
   TopMerchant,
   UploadHistoryItem,
   TopInsightsResponse,
-  Insight,
+  TopInsight,
+  StoredInsight,
 } from "../types/analytics";
 
 import { getCurrentBusiness} from "../utils/businessSession";
@@ -109,7 +110,7 @@ export async function getTopInsights(
 export interface BusinessIntelligenceResponse {
   businessId: string;
   executiveSummary: string;
-  insights: Insight[];
+  insights: StoredInsight[];
   benchmark: any;
   forecast: any;
 }

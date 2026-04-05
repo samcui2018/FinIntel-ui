@@ -28,8 +28,9 @@ export interface UploadHistoryItem {
   status: string;
   createdAt: string;
 }
-export type InsightSeverity = "High" | "Medium" | "Low"| string;
-export interface Insight {
+export type InsightSeverity = "High" | "Medium" | "Low" | string;
+
+export interface StoredInsight {
   insightId: string;
   loadId: string;
   businessId: string;
@@ -44,7 +45,7 @@ export interface Insight {
   createdAtUtc: string;
 }
 
-export interface Insight {
+export interface TopInsight {
   type: string;
   title: string;
   message: string;
@@ -59,17 +60,14 @@ export interface TopInsightsResponse {
   businessId: string;
   generatedAtUtc: string;
   lookbackMonths: number;
-  insights: Insight[];
+  insights: TopInsight[];
 }
-// export interface BusinessIntelligenceResponse {
-//   businessId: string;
-//   generatedAtUtc: string;
-//   lookbackMonths: number;
-
-//   topInsights: TopInsightsResponse;
-
-//   benchmark: BenchmarkComparison;
-//   forecast: SpendForecast;
-
-//   executiveSummary: string; // 👈 THIS is the AI output
-// }
+export interface TopInsightCardModel {
+  id: string;
+  title: string;
+  description: string;
+  severity: InsightSeverity;
+  estimatedImpact?: number | null;
+  recommendation?: string | null;
+  score?: number | null;
+}

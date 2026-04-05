@@ -1,12 +1,11 @@
-import type { Insight } from "../types/analytics";
+import type { CSSProperties } from "react";
+import type { StoredInsight } from "../types/analytics";
 
 type Props = {
-  insight: Insight & {
-    sourceName?: string | null;
-  };
+  insight: StoredInsight;
 };
 
-function getSeverityStyles(severity: string): React.CSSProperties {
+function getSeverityStyles(severity: string): CSSProperties {
   switch (severity?.toLowerCase()) {
     case "high":
       return {
@@ -51,7 +50,7 @@ function getInsightTypeLabel(type: string): string {
       return "Interchange Optimization";
     case "SubscriptionWaste":
       return "Subscription Waste";
-    case "CashFlowForecast":      
+    case "CashFlowForecast":
       return "Cash Flow Forecast";
     case "Benchmark":
       return "Benchmark";
@@ -123,7 +122,9 @@ export default function InsightCard({ insight }: Props) {
           }}
         >
           <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
-            {insight.insightType === "recurring_spend" ? "Estimated Monthly Cost" : "Estimated Impact"}
+            {insight.insightType === "recurring_spend"
+              ? "Estimated Monthly Cost"
+              : "Estimated Impact"}
           </div>
           <div style={{ fontWeight: 700 }}>{insight.impactLabel}</div>
         </div>
@@ -142,20 +143,6 @@ export default function InsightCard({ insight }: Props) {
             Recommended action
           </div>
           <div style={{ color: "#1f2937" }}>{insight.recommendation}</div>
-        </div>
-      )}
-
-      {insight.sourceName && (
-        <div
-          style={{
-            marginTop: 4,
-            fontSize: 12,
-            color: "#6b7280",
-            borderTop: "1px solid #f1f5f9",
-            paddingTop: 10,
-          }}
-        >
-          Source file: {insight.sourceName}
         </div>
       )}
     </div>
