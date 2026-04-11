@@ -11,6 +11,5 @@ export default function ProtectedRoute({ children }: Props) {
   if (!token) {
     return <Navigate to="/login" replace />;
   }
-
   return <>{children}</>;
 }

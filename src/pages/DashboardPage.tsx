@@ -5,10 +5,14 @@ import {
   getMonthlyTrend,
   getTopMerchants,
   getUploadHistory,
+  getTopInsights
 } from "../services/analyticsApi";
 import type {
   AnalyticsSummary,
   MonthlyTrendPoint,
+  StoredInsight,
+  TopInsight,
+  TopInsightsResponse,
   TopMerchant,
   UploadHistoryItem,
 } from "../types/analytics";
@@ -48,7 +52,7 @@ function DashboardPage() {
   const [topMerchants, setTopMerchants] = useState<TopMerchant[]>([]);
   const [uploadHistory, setUploadHistory] = useState<UploadHistoryItem[]>([]);
 
-  const [insights, setInsights] = useState<Insight[]>([]);
+  const [insights, setInsights] = useState<TopInsight[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -83,12 +87,13 @@ function DashboardPage() {
             getMonthlyTrend(),
             getTopMerchants(),
             getUploadHistory(),
-            getInsightsByBusinessId(businessId),
+            getTopInsights(),
           ]);
         setSummary(summaryResult);
         setMonthlyTrend(trendResult.slice(-3)); // Show only last 3 months
         setTopMerchants(merchantsResult.slice(0, 3)); // Show only top 3 merchants
         setUploadHistory(uploadsResult.slice(0, 3)); // Show only last 3 uploads
+        setInsights(insightsResult.insights.slice(0, 3)); // Show only top 3 insights
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load dashboard."

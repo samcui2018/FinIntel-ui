@@ -14,103 +14,15 @@ import type {
   TopMerchant,
   UploadHistoryItem,
   StoredInsight,
+  BusinessIntelligenceResponse
 } from "../types/analytics";
 import ErrorMessage from "../components/common/ErrorMessage";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { getCurrentBusiness } from "../utils/businessSession";
 import TopInsightsPanel from "../components/TopInsightPanel";
 
-type BusinessIntelligenceResponse = {
-  executiveSummary?: string | null;
-  topInsights?: StoredInsight[] | null;
-  benchmark?: {
-    peerAverageMonthlySpend?: number | null;
-    peerMedianMonthlySpend?: number | null;
-    percentile?: number | null;
-    comparisonSummary?: string | null;
-  } | null;
-  forecast?: {
-    nextMonthSpend?: number | null;
-    confidence?: string | null;
-    summary?: string | null;
-  } | null;
-};
-
-function formatCurrency(value: number, currencyCode = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(value);
-}
-
-function formatNullableCurrency(
-  value: number | null | undefined,
-  currencyCode = "USD"
-): string {
-  if (value == null) return "—";
-  return formatCurrency(value, currencyCode);
-}
-
-function formatDate(value: string | null): string {
-  if (!value) return "—";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-
-  return date.toLocaleString();
-}
-
-function formatInsightType(value: string): string {
-  if (!value) return "Insight";
-
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function getSeverityStyles(severity: string): React.CSSProperties {
-  switch (severity?.toLowerCase()) {
-    case "high":
-      return {
-        backgroundColor: "#fff5f5",
-        border: "1px solid #f5c2c7",
-        color: "#842029",
-      };
-    case "medium":
-      return {
-        backgroundColor: "#fff8e1",
-        border: "1px solid #ffecb5",
-        color: "#664d03",
-      };
-    default:
-      return {
-        backgroundColor: "#f0f9ff",
-        border: "1px solid #b6effb",
-        color: "#055160",
-      };
-  }
-}
-
-function sortInsights(items: StoredInsight[]): StoredInsight[] {
-  const severityRank: Record<string, number> = {
-    high: 3,
-    medium: 2,
-    low: 1,
-  };
-
-  return [...items].sort((a, b) => {
-    const severityDiff =
-      (severityRank[b.severity?.toLowerCase()] ?? 0) -
-      (severityRank[a.severity?.toLowerCase()] ?? 0);
-
-    if (severityDiff !== 0) return severityDiff;
-
-    const aDate = new Date(a.createdAtUtc ?? 0).getTime();
-    const bDate = new Date(b.createdAtUtc ?? 0).getTime();
-
-    return bDate - aDate;
-  });
-}
+import { formatCurrency, formatNullableCurrency, formatDate, 
+  formatInsightType, getSeverityStyles, sortInsights } from "../utils/SharedFunctions";
 
 export default function AnalyticsPage() {
   const currentBusiness = getCurrentBusiness();
@@ -412,28 +324,36 @@ function AiBusinessIntelligenceSection({
               <h3 style={{ marginTop: 0, marginBottom: 12 }}>Benchmark</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 <SummaryItem
-                  label="Peer Average Monthly Spend"
+                  label="Business Monthly Spend"
                   value={formatNullableCurrency(
-                    data.benchmark?.peerAverageMonthlySpend
+                    data.benchmark?.businessMonthlySpend
                   )}
                 />
                 <SummaryItem
-                  label="Peer Median Monthly Spend"
+                  label="Benchmark Monthly Spend"
                   value={formatNullableCurrency(
-                    data.benchmark?.peerMedianMonthlySpend
+                    data.benchmark?.benchmarkMonthlySpend
                   )}
                 />
                 <SummaryItem
-                  label="Percentile"
+                  label="Business Average Transaction"
+                  value={formatNullableCurrency(
+                    data.benchmark?.businessAverageTransaction
+                  )}
+                />
+                <SummaryItem
+                  label="Benchmark Average Transaction"
                   value={
-                    data.benchmark?.percentile != null
-                      ? `${data.benchmark.percentile}%`
-                      : "—"
+                    data.benchmark?.benchmarkAverageTransaction
                   }
                 />
                 <SummaryItem
-                  label="Comparison Summary"
-                  value={data.benchmark?.comparisonSummary || "—"}
+                  label="Business Top Vendor Concentration %"
+                  value={data.benchmark?.businessTopVendorConcentrationPct}
+                />
+                <SummaryItem
+                  label="Benchmark Top Vendor Concentration %"
+                  value={data.benchmark?.benchmarkTopVendorConcentrationPct}
                 />
               </div>
             </div>
@@ -450,21 +370,17 @@ function AiBusinessIntelligenceSection({
               <div style={{ display: "grid", gap: 10 }}>
                 <SummaryItem
                   label="Next Month Spend"
-                  value={formatNullableCurrency(data.forecast?.nextMonthSpend)}
+                  value={formatNullableCurrency(data.forecast?.nextMonthForecast)}
                 />
                 <SummaryItem
-                  label="Confidence"
-                  value={data.forecast?.confidence || "—"}
-                />
-                <SummaryItem
-                  label="Forecast Summary"
-                  value={data.forecast?.summary || "—"}
+                  label="Trend Slope"
+                  value={data.forecast?.trendSlope || "—"}
                 />
               </div>
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <h3 style={{ marginBottom: 12 }}>AI Top Insights</h3>
             {aiInsights.length === 0 ? (
               <p>No AI insights available.</p>
@@ -478,13 +394,15 @@ function AiBusinessIntelligenceSection({
               >
                 {aiInsights.map((insight) => (
                   <StoredInsightCard
-                    key={insight.insightId}
+                    // key={insight.insightId}
+                    //key={`${insight.insightType}-${insight.title}-${insight.createdAtUtc}`} // fallback key if insightId is not stable
+                    key={Math.random() * (1000000 - 1) + 1}
                     insight={insight}
                   />
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       )}
     </section>
@@ -544,7 +462,7 @@ function StoredInsightsSection({ insights }: { insights: StoredInsight[] }) {
   );
 
   const sortedInsights = sortInsights(filteredInsights);
-
+  console.log("storedInsights section data", sortedInsights);
   return (
     <section>
       <div style={{ marginBottom: 12 }}>
@@ -567,7 +485,9 @@ function StoredInsightsSection({ insights }: { insights: StoredInsight[] }) {
         >
           {sortedInsights.map((insight) => (
             <StoredInsightCard
-              key={insight.insightId}
+              //key={insight.insightId}
+              //key={`${insight.insightType}-${insight.title}-${insight.createdAtUtc}`} // fallback key if insightId is not stable
+              key={Math.random() * (1000000 - 1) + 1} // temporary random key, replace with stable ID in production
               insight={insight}
             />
           ))}

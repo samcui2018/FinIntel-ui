@@ -1,10 +1,12 @@
 import type { TopInsightCardModel } from "../types/analytics";
-
-function FeaturedInsight({ insight }: { insight: TopInsightCardModel }) {
+import InsightVisualizationCard from "./InsightVisualizationCard";
+import { getPriorityBadge } from "../utils/SharedFunctions";
+ 
+export default function FeaturedInsight({ insight }: { insight: TopInsightCardModel }) {
   const priority = getPriorityBadge(insight.score);
-
+console.log("featured insight", insight)
   return (
-    <div
+     <div
       style={{
         padding: 20,
         borderRadius: 12,
@@ -51,11 +53,19 @@ function FeaturedInsight({ insight }: { insight: TopInsightCardModel }) {
           borderRadius: 8,
         }}
       >
-        <strong>Severity:</strong> {insight.severity}
+        <strong>Severity:</strong> {insight.severity}    
       </div>
-
-      {insight.recommendation && (
-        <div
+      <div
+          style={{
+            marginTop: 12,
+            padding: 12,
+            background: "rgba(255,255,255,0.08)",
+            borderRadius: 8,
+          }}
+        >
+          <strong>Descrption:</strong> {insight.description}
+      </div>
+      <div
           style={{
             marginTop: 12,
             padding: 12,
@@ -64,57 +74,12 @@ function FeaturedInsight({ insight }: { insight: TopInsightCardModel }) {
           }}
         >
           <strong>Recommended:</strong> {insight.recommendation}
-        </div>
-      )}
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+          <InsightVisualizationCard visualization={insight.visualization} />
+      </div>
+      
     </div>
   );
 }
-
-// function FeaturedInsight({ insight }: { insight: TopInsightCardModel }) {
-//   return (
-//     <div
-//       style={{
-//         padding: 20,
-//         borderRadius: 12,
-//         background: "#111",
-//         color: "white",
-//         boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
-//       }}
-//     >
-//       <div style={{ fontSize: 12, opacity: 0.7 }}>TOP OPPORTUNITY</div>
-
-//       <h3 style={{ margin: "8px 0" }}>{insight.title}</h3>
-
-//       <p style={{ opacity: 0.9 }}>{insight.description}</p>
-
-//       <div style={{ marginTop: 12, fontSize: 20 }}>
-//         💰 ${insight.estimatedImpact?.toLocaleString() ?? "—"}
-//       </div>
-
-//       {insight.recommendation && (
-//         <div
-//           style={{
-//             marginTop: 12,
-//             padding: 12,
-//             background: "rgba(255,255,255,0.1)",
-//             borderRadius: 8,
-//           }}
-//         >
-//           <strong>Recommended:</strong> {insight.recommendation}
-//         </div>
-//       )}
-
-//       <button
-//         style={{
-//           marginTop: 16,
-//           padding: "10px 14px",
-//           borderRadius: 8,
-//           border: "none",
-//           cursor: "pointer",
-//         }}
-//       >
-//         Take Action →
-//       </button>
-//     </div>
-//   );
-// }

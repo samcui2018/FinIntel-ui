@@ -40,6 +40,9 @@ function Navbar() {
           <Link to="/businesses" style={linkStyle(isActive("/businesses"))}>
             Businesses
           </Link>
+          <Link to="/ai-chat" style={linkStyle(isActive("/ai-chat"))}>
+            AI Chat
+          </Link>
         </div>
 
         <div style={styles.switcher}>

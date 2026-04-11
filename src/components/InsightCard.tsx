@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { StoredInsight } from "../types/analytics";
+import InsightVisualizationCard from "./InsightVisualizationCard";
 
 type Props = {
   insight: StoredInsight;
@@ -56,6 +57,8 @@ function getInsightTypeLabel(type: string): string {
       return "Benchmark";
     case "Prediction":
       return "Prediction";
+    case "transaction_volume_anomaly":
+      return "Transaction Volume Anomaly";
     default:
       return formatInsightType(type);
   }
@@ -111,7 +114,8 @@ export default function InsightCard({ insight }: Props) {
       <div style={{ color: "#374151", lineHeight: 1.5 }}>
         {insight.description}
       </div>
-
+      
+      
       {insight.impactLabel && (
         <div
           style={{
@@ -145,6 +149,13 @@ export default function InsightCard({ insight }: Props) {
           <div style={{ color: "#1f2937" }}>{insight.recommendation}</div>
         </div>
       )}
+       {insight.visualization && (
+              <div style={{ marginTop: 20 }}>
+                <InsightVisualizationCard
+                  visualization={insight.visualization}
+                />
+              </div>
+            )}
     </div>
   );
 }
