@@ -13,6 +13,7 @@ import CreateBusinessPage from "./pages/CreateBusinessPage";
 import EditBusinessPage from "./pages/EditBusinessPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AiChatPage from "./pages/AiChatPage";
+import HeroStatCard from "./pages/MobileLayout"
 
 export default function App() {
   return (
@@ -56,6 +57,16 @@ export default function App() {
               <ProtectedRoute>
                 <RequireBusiness>
                   <AiChatPage />
+                </RequireBusiness>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/HeroCArd"
+            element={
+              <ProtectedRoute>
+                <RequireBusiness>
+                  <HeroStatCard />
                 </RequireBusiness>
               </ProtectedRoute>
             }
