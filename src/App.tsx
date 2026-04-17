@@ -61,7 +61,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/HeroCArd"
             element={
               <ProtectedRoute>
@@ -69,8 +69,8 @@ export default function App() {
                   <HeroStatCard />
                 </RequireBusiness>
               </ProtectedRoute>
-            }
-          />
+            } */}
+          {/* /> */}
         <Route path="/businesses" element={<BusinessesPage />} />
         <Route path="/businesses/new" element={<CreateBusinessPage />}/>
         <Route path="/businesses/:id/edit" element={<EditBusinessPage />} />
