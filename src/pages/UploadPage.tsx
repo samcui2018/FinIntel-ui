@@ -24,7 +24,7 @@ export default function UploadPage() {
     }
 
     if (!file) {
-      setError("Please select a CSV file.");
+      setError("Please select a CSV or Excel file.");
       return;
     }
 
@@ -85,9 +85,9 @@ export default function UploadPage() {
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.uploadBox}>
             <div style={styles.uploadIcon}>📄</div>
-            <div style={styles.uploadTitle}>Choose a CSV file</div>
+            <div style={styles.uploadTitle}>Choose a CSV or Excel file</div>
             <div style={styles.uploadText}>
-              Upload transaction data in CSV format.
+              Upload transaction data in CSV or Excel format.
             </div>
 
             <label htmlFor="file-upload" style={styles.fileLabel}>
@@ -97,7 +97,7 @@ export default function UploadPage() {
             <input
               id="file-upload"
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx"
               style={styles.hiddenInput}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />

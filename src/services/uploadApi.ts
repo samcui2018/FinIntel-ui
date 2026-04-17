@@ -1,7 +1,7 @@
 import { apiFetch } from "./apiClient";
 import type { UploadResponse } from "../types/upload";
 
-export async function uploadCsv(
+export async function uploadFile(
   file: File,
   businessId: string
 ): Promise<UploadResponse> {
@@ -9,7 +9,7 @@ export async function uploadCsv(
   formData.append("file", file);
   formData.append("businessId", businessId);
 
-  const response = await apiFetch("/uploads/csv", {
+  const response = await apiFetch("/uploads", {
     method: "POST",
     body: formData,
   });

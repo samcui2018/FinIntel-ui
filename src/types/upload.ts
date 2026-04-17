@@ -4,7 +4,7 @@
 //   rowsInserted: number;
 //   status: string;
 // };
-export interface UploadCsvResponse {
+export interface UploadResponse {
   message: string;
   loadId: string;
   businessId: string;
