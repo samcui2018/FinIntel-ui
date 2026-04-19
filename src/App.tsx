@@ -6,6 +6,7 @@ import AppShell from "./components/layout/AppShell";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import Dashboard from "./pages/Dashboard";
 import UploadPage from "./pages/UploadPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import BusinessesPage from "./pages/BusinessesPage";
@@ -25,15 +26,22 @@ export default function App() {
             <ProtectedRoute>
               <AppShell />
             </ProtectedRoute>}>
-          <Route
+          {/* <Route
             path="/"
             element={
               <RequireBusiness>
                 <DashboardPage />
               </RequireBusiness>
             }
+          /> */}
+          <Route
+            path="/"
+            element={
+              <RequireBusiness>
+                <Dashboard />
+              </RequireBusiness>
+            }
           />
-
           <Route
             path="/upload"
             element={
@@ -61,7 +69,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/* <Route
+          <Route
             path="/HeroCArd"
             element={
               <ProtectedRoute>
@@ -69,8 +77,8 @@ export default function App() {
                   <HeroStatCard />
                 </RequireBusiness>
               </ProtectedRoute>
-            } */}
-          {/* /> */}
+            }
+           /> 
         <Route path="/businesses" element={<BusinessesPage />} />
         <Route path="/businesses/new" element={<CreateBusinessPage />}/>
         <Route path="/businesses/:id/edit" element={<EditBusinessPage />} />

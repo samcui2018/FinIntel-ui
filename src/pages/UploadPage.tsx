@@ -59,6 +59,7 @@ export default function UploadPage() {
   }
 
   return (
+
     <div style={styles.page}>
       <div style={styles.card}>
         <div style={styles.header}>
@@ -67,7 +68,7 @@ export default function UploadPage() {
             <p style={styles.subtitle}>
               Upload a transaction file for analysis and insight generation.
             </p>
-          </div>
+          </div>        
         </div>
 
         <div style={styles.businessBanner}>

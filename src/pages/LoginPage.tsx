@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/authApi";
 import { postAuthNavigation } from "../utils/postAuthNavigation";
@@ -11,6 +11,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const authMessage = sessionStorage.getItem("authMessage");
+    if (authMessage) {
+      setError(authMessage);
+      sessionStorage.removeItem("authMessage");
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

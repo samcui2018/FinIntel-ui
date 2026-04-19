@@ -43,6 +43,12 @@ function Navbar() {
           <Link to="/ai-chat" style={linkStyle(isActive("/ai-chat"))}>
             AI Chat
           </Link>
+          {/* <Link to="/HeroCard" style={linkStyle(isActive("/HeroCard"))}>
+            Hero Card
+          </Link> */}
+          {/* <Link to="/Dashboard" style={linkStyle(isActive("/Dashboard"))}>
+            Dashboard
+          </Link> */}
         </div>
 
         <div style={styles.switcher}>
