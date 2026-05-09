@@ -84,12 +84,13 @@ export default function InsightVisualizationCard({ visualization }: Props) {
   console.log("Chart type:", chartType);
 
   return (
-    <div className="mt-4 rounded-xl border bg-white p-4">
+    <div className="chart-container">
       <h4 className="mb-3 text-sm font-semibold text-slate-700">
         {visualization.title ?? "Chart"}
       </h4>
 
-      <div style={{ width: "100%", height: 320, minWidth: 300 }}>
+      {/* style={{ width: "100%", height: 320, minWidth: 300 }} */}
+      <div style={{ width: "100%", height: 320, minWidth: 300 }} >
         <ResponsiveContainer width="100%" height="100%">
           {chartType === "pie" ? (
             <PieChart>

@@ -4,6 +4,9 @@ import { login } from "../services/authApi";
 import { postAuthNavigation } from "../utils/postAuthNavigation";
 import { clearCurrentBusiness } from "../utils/businessSession";
 
+import { startDemo } from "../services/demoService";
+import { saveAuthSession } from "../utils/authStorage";
+
 export default function LoginPage() {
   const navigate = useNavigate();
 
@@ -11,6 +14,34 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [isStartingDemo, setIsStartingDemo] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
+
+  const handleTryDemo = async () => {
+    try {
+      setIsStartingDemo(true);
+      setDemoError(null);
+
+      const result = await startDemo();
+
+      saveAuthSession({
+        token: result.token,
+        businessId: result.businessId,
+        businessName: result.businessName,
+        isDemo: result.isDemo,
+        expiresAtUtc: result.expiresAtUtc,
+      });
+
+      navigate("/");
+    } catch (error) {
+      setDemoError(
+        error instanceof Error ? error.message : "Unable to start demo session."
+      );
+    } finally {
+      setIsStartingDemo(false);
+    }
+  };
 
   useEffect(() => {
     const authMessage = sessionStorage.getItem("authMessage");
@@ -100,9 +131,13 @@ export default function LoginPage() {
           </div>
 
           {error && <div style={errorStyle}>{error}</div>}
+          {demoError && <div>{demoError}</div>}
 
           <button type="submit" disabled={saving} style={buttonStyle}>
             {saving ? "Signing in..." : "Sign In"}
+          </button>
+          <button type="button" onClick={handleTryDemo} disabled={isStartingDemo}>
+            {isStartingDemo ? "Starting demo..." : "Try Demo"}
           </button>
         </form>
 

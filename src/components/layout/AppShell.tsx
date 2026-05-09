@@ -3,6 +3,8 @@ import Navbar from "./Navbar";
 // import RequireBusiness from "./RequireBusiness";
 
 export default function AppShell() {
+  const isDemo = localStorage.getItem("isDemo") === "true";
+  const demoExpiresAtUtc = localStorage.getItem("demoExpiresAtUtc");
   return (
     <div
       style={{
@@ -24,6 +26,15 @@ export default function AppShell() {
             width: "100%",
           }}
         >
+          {isDemo && (
+            <div className="rounded-md border px-3 py-2 text-sm">
+              Demo mode active
+              {demoExpiresAtUtc
+                ? ` — session expires at ${new Date(demoExpiresAtUtc).toLocaleTimeString()}`
+                : ""}
+            </div>
+          )}
+          
           {/* Optional business guard */}
           {/* 
           <RequireBusiness>

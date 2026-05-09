@@ -1,8 +1,9 @@
 // import { apiFetch } from "./apiClient";
 // import type { AuthResponse, LoginRequest, RegisterRequest } from "../types/auth";
 // import type { LoginResponse } from "../types/auth";
+import { config } from "../config/config";
 
-const BASE_URL = "http://localhost:5020/api";
+//const BASE_URL = "http://localhost:5020/api";
 
 async function readError(response: Response): Promise<string> {
   const text = await response.text();
@@ -20,7 +21,7 @@ async function readError(response: Response): Promise<string> {
 }
 
 export async function login(email: string, password: string) {
-  const response = await fetch(`${BASE_URL}/auth/login`, {
+  const response = await fetch(`${config.apiBaseUrl}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

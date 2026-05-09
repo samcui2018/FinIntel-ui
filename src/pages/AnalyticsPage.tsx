@@ -7,7 +7,9 @@ import {
   getUploadHistory,
   getBusinessIntelligence,
 } from "../services/analyticsApi";
+
 import { getInsightsByBusinessId } from "../services/insightApi";
+
 import type {
   AnalyticsSummary,
   MonthlyTrendPoint,
@@ -321,7 +323,7 @@ function AiBusinessIntelligenceSection({
                 backgroundColor: "#fafafa",
               }}
             >
-              <h3 style={{ marginTop: 0, marginBottom: 12 }}>Benchmark</h3>
+              {/* <h3 style={{ marginTop: 0, marginBottom: 12 }}>Benchmark</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 <SummaryItem
                   label="Business Monthly Spend"
@@ -365,7 +367,7 @@ function AiBusinessIntelligenceSection({
                 padding: 16,
                 backgroundColor: "#fafafa",
               }}
-            >
+            > */}
               <h3 style={{ marginTop: 0, marginBottom: 12 }}>Forecast</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 <SummaryItem

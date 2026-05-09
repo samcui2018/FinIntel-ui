@@ -157,3 +157,9 @@ button {
     @apply font-sans;
   }
 }
+
+.chart-container {
+  background-color: #0c0c0c; /* dark slate (matches modern dashboards) */
+  border-radius: 12px;
+  padding: 16px;
+}
